@@ -17,10 +17,10 @@ timeline = Timeline()
 note = key
 
 # Semi-randomly queue notes from the scale
-for i in range(64):
+for i in range(16):
     if note.index > 50 or note.index < 24:
         # If note goes out of comfort zone, randomly place back at base octave
-        note = scale.get(random.randrange(4) * 2)
+        note = scale[random.randrange(4) * 2]
         note = note.at_octave(key.octave)
     else:
         # Transpose the note by some small random interval
