@@ -40,6 +40,7 @@ class Scale:
     '''
 
     def __init__(self, root, scale):
+        self.base_octave = root.octave
         self.root = root.at_octave(0)
         if isinstance(scale, str):
             scale = Scale.intervals_from_name(scale)
@@ -54,7 +55,22 @@ class Scale:
         return len(self.intervals)
 
     def __iter__(self):
-        return iter(self.get(i) for i in range(len(self)))
+        '''
+        Iterates notes in the 0th octave
+        '''
+        note = self.root
+        yield note
+        for interval in self.intervals:
+            note = note.transpose(interval)
+            yield note
+
+    def iter_in_octave(self, octave=None):
+        octave = self.base_octave if not octave else octave
+        note = self.root.transpose(12 * octave)
+        yield note
+        for interval in self.intervals:
+            note = note.transpose(interval)
+            yield note
 
     @classmethod
     def intervals_from_name(self, name):
@@ -66,10 +82,9 @@ class Scale:
             name = name.replace(text, '')
         return NAMED_SCALES[name]
 
-    def get(self, index):
+    def __getitem__(self, index):
         ''' Get note from scale, 0 is the root at octave 0
-        '''
-        intervals = self.intervals
+                '''
         if index < 0:
             index, intervals = abs(index), reversed(self.intervals)
         intervals = itertools.cycle(self.intervals)
@@ -94,4 +109,4 @@ class Scale:
     def transpose(self, note, interval):
         ''' Transpose note with scale by intervals, 1 = second, 2 = third...
         '''
-        return self.get(self.index(note) + interval)
+        return self[self.index(note) + interval]
