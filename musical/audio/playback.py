@@ -1,3 +1,5 @@
+import time
+
 from . import encode
 import numpy
 
@@ -65,6 +67,37 @@ def pyaudio_play(data, rate=44100):
     stream = p.open(format=pyaudio.paFloat32, channels=1, rate=rate, output=1)
     stream.write(data.astype(numpy.float32).tostring())
     stream.close()
+    p.terminate()
+
+
+current_index = 0
+def pyaudio_play_concurrent(data, rate=44100):
+    ''' Send audio array to pyaudio using callback playback mode
+    '''
+    current_index = 0
+    import pyaudio
+    def audio_callback(in_data, frame_count, time_info, status):
+        global current_index
+        if len(data) > current_index:
+            retdata = data[current_index:current_index+frame_count].astype(numpy.float32)
+            current_index += frame_count
+            return retdata , pyaudio.paContinue
+        else:
+            print("finished")
+            return 0, pyaudio.paComplete
+
+    p = pyaudio.PyAudio()
+    stream = p.open(
+        format=pyaudio.paFloat32, channels=1, rate=rate,
+        output=True, stream_callback=audio_callback)
+    stream.start_stream()
+
+    try:
+        while stream.is_active():
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        pass
+
     p.terminate()
 
 
