@@ -92,6 +92,9 @@ class Note:
     def sharp(self):
         return Note(self.index + 1)
 
+    def flat(self):
+        return Note(self.index - 1)
+
     def frequency(self):
         ''' Return frequency of note
         '''
